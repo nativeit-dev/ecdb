@@ -151,7 +151,7 @@ LABEL org.opencontainers.image.title="Unofficial ECDB Docker image" \
     
 VOLUME /var/www/html
 
-COPY -R ../../src/ /var/www/html/
+COPY -R src/ /var/www/html/
 COPY config.inc.php /etc/ecdb/config.inc.php
 COPY docker-entrypoint.sh /usr/local/bin/
 
