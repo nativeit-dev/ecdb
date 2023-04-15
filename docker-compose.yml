@@ -1,0 +1,50 @@
+version: "3.1"
+
+services:
+  db_server:
+    image: ${DB:-mariadb:10.3}
+    environment:
+      MYSQL_ROOT_PASSWORD: "${db_pass}"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${db_pass}"]
+      start_period: 10s
+      interval: 5s
+      timeout: 60s
+      retries: 10
+    networks:
+      testing:
+        aliases:
+         - ecdb-sql
+    volumes:
+      - /var/lib/mysql:rw,noexec,nosuid,size=300m
+
+  ecdb:
+    build:
+      context: docker/apache
+    environment:
+      UPLOAD_LIMIT: 512M
+      MAX_EXECUTION_TIME: 600
+      HIDE_PHP_VERSION: 1
+      ECDB_HOST: ${hosts}
+      ECDB_PORT: ${ports}
+      ECDB_ABSOLUTE_URI: 
+      MEMORY_LIMIT:
+    volumes:
+      - src:/var/www/html:ro
+    healthcheck:
+      test: ["CMD", "curl", "-Ss", "http://localhost/robots.txt"]
+      start_period: 5s
+      interval: 3s
+      timeout: 60s
+      retries: 10
+    networks:
+      testing:
+        aliases:
+         - ecdb-apache
+    depends_on:
+      db_server:
+        condition: service_healthy
+
+networks:
+    ecdb:
+        driver: bridge
